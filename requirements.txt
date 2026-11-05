@@ -1,3 +1,6 @@
+# Compatible package ranges; original environment used Python 3.12.
+# These are not exact frozen versions.
 numpy>=1.26,<3
 pandas>=2.1,<3
+scipy>=1.11,<2
 scikit-learn>=1.4,<2
