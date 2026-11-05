@@ -19,7 +19,7 @@
 \usepackage{caption}
 \newcommand{\ap}{\mathrm{AP}}
 \newcommand{\roc}{\mathrm{ROC\mbox{-}AUC}}
-\newcommand{\repository}{\textbf{[ADD PUBLIC GITHUB URL BEFORE SUBMISSION]}}
+\newcommand{\repository}{\url{https://github.com/zekikosee/COMP8240-OptIForest-Anomaly-Detection}}
 \emergencystretch=2em
 \sloppy
 \title{Reproducing and Extending OptIForest for Anomaly Detection: Replication, Controlled Ablations and Synthetic Transaction Experiments}
@@ -47,11 +47,13 @@ Anomaly detection identifies observations that differ from expected patterns. Ap
  
 OptIForest, proposed by \citet{xiang2023} at IJCAI 2023, extends the isolation-tree family through a multi-fork construction and a clustering-oriented learning-to-hash mechanism. Its authors argue for an expected branching factor near Euler's number $e$, implemented by probabilistically combining binary and ternary merges. The paper evaluates multiple benchmarks and reports ROC-AUC, precision--recall performance and parameter studies. The official code and its supplied \texttt{ad.csv} dataset are available online.\footnote{Original OptIForest project: \url{https://github.com/xiagll/OptIForest}.}
  
+The code, data-generation scripts and saved experimental results are available in the public project repository.\footnote{Project repository: \url{https://github.com/zekikosee/COMP8240-OptIForest-Anomaly-Detection}.}
+
 This project follows the individually proposed \emph{default project}. Its questions are: \textbf{RQ1}: Can reported OptIForest performance on the supplied AD benchmark be reproduced? \textbf{RQ2}: How do branching choice and cut threshold affect performance and runtime? \textbf{RQ3}: Does OptIForest outperform a transparent iForest baseline for different synthetic anomaly mechanisms and prevalence levels? Proposed hypotheses included numerical reproduction within five percentage points (H1), mixed branching within 0.02 AP of the best fixed branch (H2), and positive paired AP differences on new datasets (H3). We report observations even where they contradict expectations.
  
 \section{Original Dataset and Replication}
 \subsection{Data and reproducible environment}
-The public repository supplies one original dataset, \texttt{data/ad.csv}, containing 3,279 records with 1,555 numeric features and a final binary label. There are 2,820 normal and 459 anomalous observations, with no missing values reported in the proposal's data inspection. This is a supplied benchmark, not a real banking dataset. The 20 datasets studied in the original paper are not all bundled with the accessible code; therefore, this project does not claim to reproduce the entire published benchmark suite.
+The upstream OptIForest project supplies one original dataset, \texttt{data/ad.csv}; our public repository also includes it as a compressed \texttt{OptIForest-main/data/ad.csv.zip} archive, which must be extracted before running the original demo. The uncompressed AD dataset contains 3,279 records with 1,555 numeric features and a final binary label. There are 2,820 normal and 459 anomalous observations, with no missing values reported in the proposal's data inspection. This is a supplied benchmark, not a real banking dataset. The 20 datasets studied in the original paper are not all bundled with the accessible code; therefore, this project does not claim to reproduce the entire published benchmark suite.
  
 The local experiments used Python 3.12 and current NumPy, SciPy, pandas and scikit-learn libraries on Windows. An initial compatibility failure occurred because modern NumPy removed \texttt{np.mat}. Two affected calls were replaced by \texttt{np.asmatrix} without an intended change to the algorithm. Both the original-code source and the small compatibility changes should be documented in the companion repository. The work also repeatedly emitted a runtime warning for an invalid scalar division within the tree implementation; since the affected numerical path was not formally audited, this warning is a reproducibility limitation rather than proof of correct numerical behaviour.
  
@@ -149,8 +151,25 @@ Anomalies at 1\% / 5\% / 10\% & 100 / 500 / 1,000 \\
 \bottomrule
 \end{tabular}
 \end{table}
- 
- 
+
+\begin{table}[t]
+\centering\small
+\caption{Four genuine rows from the point-anomaly 5\% CSV (seed 42; rounded values; zero-based row indices). Distance is in km.}
+\label{tab:sample_rows}
+\begin{tabular}{@{}rrrrrr@{}}
+\toprule
+Row & Amount & Hour & Distance & Tx/24h & Label \\
+\midrule
+0  & 26.46 & 21 & 12.10 & 3 & 0 \\
+1  & 72.98 & 14 & 0.48 & 2 & 0 \\
+33 & 1546.16 & 17 & 8.86 & 1 & 1 \\
+68 & 767.11 & 12 & 3.07 & 1 & 1 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Table~\ref{tab:sample_rows} supplies a concrete snippet of the newly generated data rather than only listing its feature names. The 0/1 labels are known injection labels, not human annotations.
+
 \subsection{Checks on the generated data}
 The validity of these datasets is more than obtaining the intended class count. For each new configuration, deterministic generation means that the same script version and seed can reproduce the same CSV bytes. The hash in the JSON metadata is useful for confirming identity of an archived file; it does not independently prove that the design represents realistic financial behaviour. The initial validation routine also checks feature domains, absent values, prevalence and repeatability, but it cannot establish ecological validity or effective isolation of anomaly mechanisms. Because the data-generating intervention directly modifies the model features, an apparently impressive detection score may partly reflect deliberately separable synthetic signals.
  
@@ -223,11 +242,11 @@ Rate & Mean $\Delta$AP & Lower 95\% & Upper 95\% \\
 This analysis illustrates why a large observed score gap should not immediately be called statistically significant. For point 1\%, the wide interval even includes a small negative difference, despite all three recorded differences being positive. There are only three possible seed pairings in the preserved OptIForest subset; adding many iForest-only seeds cannot compensate for missing OptIForest seeds. Prevalence-level comparisons also require care because the positive class's base rate changes the expected average precision of a random ranking (approximately the prevalence itself). Our reported AP values are therefore accompanied by ROC-AUC and always contextualised with the anomaly rate.
  
 \section{Ethics and Data Management}
-Responsible computational research requires accurate provenance, disclosure of limitations, transparent reporting and reproducibility, consistent with the Australian Code for the Responsible Conduct of Research \citep{nhmrc2018}. No personal financial or medical data were collected in the synthetic extension. Generated feature names imitate payment-system concepts but do not imply bank-grade realism, actual identities or consent from real users. The AD benchmark and upstream code require source attribution and careful review of their distribution conditions before public redistribution.
+Responsible computational research requires accurate provenance, disclosure of limitations, transparent reporting and reproducibility, consistent with the Australian Code for the Responsible Conduct of Research \citep{nhmrc2018}. No personal financial or medical data were collected in the synthetic extension. Generated feature names imitate payment-system concepts but do not imply bank-grade realism, actual identities or consent from real users. The AD benchmark and upstream code originate from a third-party public research repository. Our archive includes an attributed compressed copy of AD for replication; public availability alone does not establish redistribution rights, so the upstream licence and dataset terms should be checked before any further distribution.
  
 For a real financial screening deployment, false positives can block legitimate transactions and disproportionately burden particular customer groups; false negatives may fail to identify harmful behaviour. The present experiments do not assess subgroup fairness, individual impact, calibration or prospective monitoring. High discrimination metrics on injected synthetic anomalies cannot support claims of production fraud-detection effectiveness. Aggregate AP and ROC-AUC hide threshold-specific downstream workloads and operational costs.
  
-The project also has research-integrity obligations: preserve original code provenance, identify the NumPy compatibility correction, store immutable CSV outputs and seeds, and document interrupted or incomplete runs. Threshold 7 has no completed numerical result; the warning in the tree implementation remains an unresolved numerical concern. Likewise, an exploratory finding should not be presented as statistically significant without repeated independent trials and uncertainty analysis. Releasing the generator and non-sensitive synthetic CSVs supports auditability, while credentials, identifiable data and unlicensed third-party datasets must not be committed to a public repository.
+The original paper studies abnormal-instance ranking, rather than judging people; nevertheless, using an anomaly score for security screening can create real consequences for flagged individuals. The source study does not by itself demonstrate fairness or privacy protection in deployed financial settings. The project also has research-integrity obligations: preserve original code provenance, identify the NumPy compatibility correction, store immutable CSV outputs and seeds, and document interrupted or incomplete runs. Threshold 7 has no completed numerical result; the warning in the tree implementation remains an unresolved numerical concern. Likewise, an exploratory finding should not be presented as statistically significant without repeated independent trials and uncertainty analysis. Releasing the generator and non-sensitive synthetic CSVs supports auditability, while credentials, identifiable data and unlicensed third-party datasets must not be committed to a public repository.
  
 \section{Discussion and Conclusions}
 RQ1 was addressed successfully for the accessible AD experiment: the mean ROC-AUC and AP closely reproduce the original reported figures. RQ2 revealed sensitivity to branch and threshold choice: ternary branching led the three-seed mean AP at threshold 403, whereas the highest single-seed AP and lowest runtime among tested cut thresholds occurred at 512. The threshold-7 computation was attempted but not completed; low thresholds can have prohibitive computational costs. Neither ablation supports universal parameter claims.
@@ -251,10 +270,10 @@ The supplied project archive distinguishes three forms of research evidence: sou
  
 The audit procedure is straightforward. First, verify the dataset shape and metadata checksums and confirm that no label column enters fitting. Second, inspect the exact OptIForest model configuration and record both Python and NumPy random seeds. Third, recalculate AP and ROC-AUC from the same score orientation; OptIForest scores were inverted in the local wrapper because lower native scores indicate greater anomaly. Fourth, compare each reported table against the saved seed-indexed CSVs. Fifth, preserve all failed or interrupted attempts without assigning them an accuracy value. In particular, the threshold-7 run should never appear as a missing zero or be included in a numerical average.
  
-For an independent replication, the GitHub repository should be cloned into a fresh environment, the pinned dependencies installed, and \texttt{demo.py} and the experiment wrappers invoked with documented commands. If the original source is kept as a third-party subfolder, the README must identify that origin rather than present it as the student's own algorithm. The local source patch should be kept minimal and reviewable. Publishing CSV outputs is not a substitute for making the experiment runnable, but it allows a grader to inspect computations without rerunning the most expensive low-threshold configurations.
+For an independent replication, the GitHub repository should be cloned into a fresh environment, the compatible dependency ranges installed, the archived \texttt{ad.csv.zip} extracted to \texttt{ad.csv}, and \texttt{demo.py} and the experiment wrappers invoked with documented commands. If the original source is kept as a third-party subfolder, the README must identify that origin rather than present it as the student's own algorithm. The local source patch should be kept minimal and reviewable. Publishing CSV outputs is not a substitute for making the experiment runnable, but it allows a grader to inspect computations without rerunning the most expensive low-threshold configurations.
  
 \section*{Code and Reproducibility Statement}
-Scripts, synthetic data, metadata and CSV results are supplied in the companion archive. The report must link to a \emph{publicly accessible} GitHub repository before submission: \repository. The GitHub README should document the Python environment, source-code attribution, original-data execution and synthetic experiment commands. Repository availability and a working link have not yet been verified and must not be claimed until publishing is complete.
+Scripts, synthetic data, metadata, a compressed original AD dataset and CSV results are supplied in the public project repository at \repository. The GitHub README documents the Python environment, upstream source attribution, extraction of \texttt{OptIForest-main/data/ad.csv.zip}, and the original and synthetic experiment commands. The original code and AD data are attributed to their third-party source; the source licence and redistribution terms should be independently reviewed.
  
 \IfFileExists{acl_natbib.bst}{\bibliographystyle{acl_natbib}}{\bibliographystyle{plainnat}}
 \bibliography{custom}
