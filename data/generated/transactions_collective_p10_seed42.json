@@ -1,0 +1,24 @@
+{
+  "simulation": true,
+  "method": "custom educational synthetic generator",
+  "seed": 42,
+  "rows": 10000,
+  "features": [
+    "amount",
+    "hour",
+    "account_age_days",
+    "distance_km",
+    "transactions_24h",
+    "merchant_risk",
+    "device_familiarity",
+    "geographic_velocity"
+  ],
+  "anomaly_type": "collective",
+  "requested_prevalence": 0.1,
+  "actual_prevalence": 0.1,
+  "label_counts": {
+    "0": 9000,
+    "1": 1000
+  },
+  "sha256": "bb7256e9a016fec8315506cb9ca95ce10e00c4322a2cb90a08843c3fc2f06107"
+}

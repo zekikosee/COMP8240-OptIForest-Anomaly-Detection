@@ -1,0 +1,2 @@
+dataset,scaling,branch,threshold,trees,seed,auc_roc,average_precision,fit_seconds,score_seconds
+ad.csv,none,0,512,100,0,0.7835716713793476,0.4610605945045003,23.141190600115806,14.40297990012914
